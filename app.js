@@ -4,20 +4,28 @@
  * http://github.com/gnuns
  */
 const express = require('express')
+const fs = require('fs')
+
 
 const { version } = require('./package.json')
 // yep, global. it's ok
 // https://softwareengineering.stackexchange.com/a/47926/289420
 global.AO_VERSION = version
 
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/cp.rarium.io/privkey.pem')
+const certificate = fs.readFileSync('/etc/letsencrypt/live/cp.rarium.io/fullchain.pem')
+const credentials = {key: privateKey, cert: certificate}
+
 const processRequest = require('./app/process-request')
+
+
 
 function enableCORS(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*')
   res.header('Access-Control-Allow-Credentials', true)
   res.header(
     'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Content-Encoding, Accept'
+    'Origin, X-Requested-With, Content-Type, Content-Encoding, Accept, User-Agent'
   )
   res.header(
     'Access-Control-Allow-Methods',
@@ -28,7 +36,8 @@ function enableCORS(req, res, next) {
 }
 
 module.exports = (function app() {
-  const app = express()
+  //const app = express()
+  const app = express.createServer(credentials)
 
   app.set('case sensitive routing', false)
   app.set('jsonp callback name', 'callback')
